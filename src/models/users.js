@@ -9,10 +9,10 @@ const UserSchema = new  mongoose.Schema({
         enum: ["male", "female"],
         required: true
     },
-    email: String, 
+    email: {type: String, unique: true, required: true}, 
     phone: String, 
     city: String
-})
+}, {timestamps: true})
 
 const User = mongoose.model('User', UserSchema);
 
