@@ -1,13 +1,13 @@
 import express from 'express';
 import connectDB from './src/config/db.js';
-import routes from './src/routes/routes.js'
+import UserRoutes from './src/routes/userRoutes.js'
 
 const app = express();
 const port = 3000;
 
 
 app.use(express.json());    // express.JSON middleware to handle all incoming JSON format data
-app.use('/',routes);        // all the routes are written in the routes file for easy understanding
+app.use('/',UserRoutes);        // all the routes are written in the routes file for easy understanding
 
 
 connectDB().then(()=>{
