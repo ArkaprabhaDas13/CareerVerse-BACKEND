@@ -5,7 +5,7 @@ import User from '../models/users.js'
 
 const router = express.Router();
 
-// ROUTE TO ADD NEW USER ----------------------------------------------------------------------------------------
+// ROUTE TO SIGN IN NEW USER ----------------------------------------------------------------------------------------
 
 router.post("/signup", async(req, res)=>{
 
@@ -45,6 +45,16 @@ router.post("/signup", async(req, res)=>{
     res.status(400).send(err.message);
   }   
 })
+
+
+// Route to LOGIN an existing user ------------------------------------------------
+
+router.post("/login", (req, res)=>{
+  const data = req.body;
+  console.log(data);
+  res.send(data);
+})
+
 
 // Route to get all the users -----------------------------------------
 
