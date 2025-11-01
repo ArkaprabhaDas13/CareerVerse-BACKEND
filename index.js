@@ -1,13 +1,15 @@
 import express from 'express';
 import connectDB from './src/config/db.js';
-import UserRoutes from './src/routes/userRoutes.js'
+import userRoutes from './src/routes/userRoutes.js'
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const port = 3000;
 
 
 app.use(express.json());    // express.JSON middleware to handle all incoming JSON format data
-app.use('/',UserRoutes);        // all the routes are written in the routes file for easy understanding
+app.use(cookieParser());    // Parse the cookies into readable format   
+app.use('/',userRoutes);        // all the routes are written in the routes file for easy understanding
 
 
 connectDB().then(()=>{

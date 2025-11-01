@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import User from '../models/users.js'
 import {validation} from '../utils/validation.js'
+import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
@@ -47,7 +48,6 @@ router.post("/signup", async(req, res)=>{
   }   
 })
 
-
 // Route to LOGIN an existing user ------------------------------------------------
 
 router.post("/login", async(req, res)=>{
@@ -55,13 +55,30 @@ router.post("/login", async(req, res)=>{
   try{
     const user = await User.findOne({email: data.email});
     await validation(req, user);
-    res.cookie("token", )
+    const token = jwt.sign({_id: user._id}, "SecretCode");
+    res.cookie("token", token);
     res.status(200).send("Login successful!");
   }catch(err){
     res.status(400).send(err.message);
   }
 })
 
+// Route to get the profie --------------------------------------------
+
+router.get("/profile", async(req, res)=>{
+  const cookies = req.cookies;
+  const {token} = cookies;
+  console.log("Cookies = ", token);
+  const decoded = await jwt.verify(cookies.token , "SecretCode");
+  console.log("Decoded Value = ", decoded);
+  const {_id} = decoded;
+  const user = await User.findById({_id});
+  if(!user)
+  {
+    throw new Error("Error in finding user!");
+  }
+  res.status(200).send(user);
+})
 
 // Route to get all the users -----------------------------------------
 
@@ -119,4 +136,6 @@ router.delete("/:id", async(req, res)=>{
     res.status(400).send(err.message);
   }
 })
+
+
 export default router;
