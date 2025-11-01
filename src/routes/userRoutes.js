@@ -2,10 +2,11 @@ import axios from 'axios';
 import express from 'express';
 import mongoose from 'mongoose';
 import User from '../models/users.js'
+import {validation} from '../utils/validation.js'
 
 const router = express.Router();
 
-// ROUTE TO SIGN IN NEW USER ----------------------------------------------------------------------------------------
+// ROUTE TO SIGN IN NEW USER ------------------------------------------------------
 
 router.post("/signup", async(req, res)=>{
 
@@ -49,10 +50,16 @@ router.post("/signup", async(req, res)=>{
 
 // Route to LOGIN an existing user ------------------------------------------------
 
-router.post("/login", (req, res)=>{
+router.post("/login", async(req, res)=>{
   const data = req.body;
-  console.log(data);
-  res.send(data);
+  try{
+    const user = await User.findOne({email: data.email});
+    await validation(req, user);
+    res.cookie("token", )
+    res.status(200).send("Login successful!");
+  }catch(err){
+    res.status(400).send(err.message);
+  }
 })
 
 
