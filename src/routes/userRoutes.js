@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import User from '../models/users.js'
 import {validation} from '../utils/validation.js'
 import jwt from 'jsonwebtoken'
+import authentication from '../utils/authentication.js';
 
 const router = express.Router();
 
@@ -55,7 +56,8 @@ router.post("/login", async(req, res)=>{
   try{
     const user = await User.findOne({email: data.email});
     await validation(req, user);
-    const token = jwt.sign({_id: user._id}, "SecretCode");
+    // Create JWT Token from Schema Methods
+    const token = await user.createJWT();
     res.cookie("token", token);
     res.status(200).send("Login successful!");
   }catch(err){
@@ -65,20 +67,18 @@ router.post("/login", async(req, res)=>{
 
 // Route to get the profie --------------------------------------------
 
-router.get("/profile", async(req, res)=>{
-  const cookies = req.cookies;
-  const {token} = cookies;
-  console.log("Cookies = ", token);
-  const decoded = await jwt.verify(cookies.token , "SecretCode");
-  console.log("Decoded Value = ", decoded);
-  const {_id} = decoded;
-  const user = await User.findById({_id});
-  if(!user)
-  {
-    throw new Error("Error in finding user!");
-  }
+router.get("/profile", authentication, async(req, res)=>{
+  const user = await User.findById(req.userId);
   res.status(200).send(user);
 })
+
+
+// Dummy Route ------------------------------------------
+
+router.get("/dummy", authentication,  (req, res)=>{
+  res.send(req.userId);
+})
+
 
 // Route to get all the users -----------------------------------------
 
@@ -94,7 +94,7 @@ router.get("/getAllUsers", async(req, res)=>{
 
 // Route to get 1 user using ID ---------------------------------------
 
-router.get("/:id", async(req, res)=>{
+router.get("/user/:id", async(req, res)=>{
   const id = req.params.id;
   try{
     const user = await User.findById(id);
@@ -106,7 +106,7 @@ router.get("/:id", async(req, res)=>{
 
 // Edit an User Detail -------------------------------------
 
-router.patch("/:id", async(req, res)=>{
+router.patch("/user/:id", async(req, res)=>{
   const id = req.params?.id;
   const updateDetails = req.body;
   try{
@@ -127,7 +127,7 @@ router.patch("/:id", async(req, res)=>{
 
 // Delete an User ------------------------------------------------------
 
-router.delete("/:id", async(req, res)=>{
+router.delete("/user/:id", async(req, res)=>{
   const id = req.params.id;
   try{
     await User.findOneAndDelete(id);
@@ -136,6 +136,7 @@ router.delete("/:id", async(req, res)=>{
     res.status(400).send(err.message);
   }
 })
+
 
 
 export default router;

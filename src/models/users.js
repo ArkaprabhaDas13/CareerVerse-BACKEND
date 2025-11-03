@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import validator from "validator";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const saltRounds = 10;  // for hashing passwords
 
@@ -67,10 +68,16 @@ const UserSchema = new  mongoose.Schema({
 
 // Hashing the password before saving to DB ----------------------------------------------
 UserSchema.pre('save', async function(next){
-    const salt = bcrypt.genSaltSync(saltRounds);
+    const salt = await bcrypt.genSaltSync(saltRounds);
     this.password = await bcrypt.hashSync(this.password, salt);
     next();
 })
+
+UserSchema.methods.createJWT = async function(){
+    const user = this;
+    const token = await jwt.sign({_id: user._id}, "SecretCode");
+    return token;
+}
 
 
 const User = mongoose.model('User', UserSchema);
