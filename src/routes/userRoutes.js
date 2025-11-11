@@ -6,83 +6,19 @@ import {validation} from '../utils/validation.js'
 import jwt from 'jsonwebtoken'
 import authentication from '../utils/authentication.js';
 
-const router = express.Router();
-
-// ROUTE TO SIGN IN NEW USER ------------------------------------------------------
-
-router.post("/signup", async(req, res)=>{
-
-  // For creating new user, we need some validations:
-  // 1. age cannot be more than 80
-  // 2. email has to be valid
-  // 3. input should contain only "firstName", "lastName", "age", "gender", "email", "phone", "city", "photoURL"
-
-  //create a new instance of the User Model
-  const newUser = req.body
-  const user = new User(newUser);
-
-  // check if the user already exists
-  const existingUser = await User.findOne({"email":newUser.email});
-  console.log(existingUser);
-
-  //save the model into the DB
-
-  try{
-
-    // data sanitation through API before saving to DB
-    const acceptedValues = ["firstName", "lastName", "age", "gender", "email", "password", "phone", "city", "photoURL"];
-    const isEntryValid = Object.keys(newUser).every((key)=>{
-      return acceptedValues.includes(key);
-    })
-
-    // Checking for cases before entering into DB
-    if(!isEntryValid || newUser.age>80 || existingUser)
-    {
-      throw new Error("Please enter the VALUES CORRECTLY or the user already exists!");
-    }
-    
-    const addedUser = await user.save();
-    res.status(200).send("User added successfully!");
-
-  }catch(err){
-    res.status(400).send(err.message);
-  }   
-})
-
-// Route to LOGIN an existing user ------------------------------------------------
-
-router.post("/login", async(req, res)=>{
-  const data = req.body;
-  try{
-    const user = await User.findOne({email: data.email});
-    await validation(req, user);
-    // Create JWT Token from Schema Methods
-    const token = await user.createJWT();
-    res.cookie("token", token);
-    res.status(200).send("Login successful!");
-  }catch(err){
-    res.status(400).send(err.message);
-  }
-})
+const userRouter = express.Router();
 
 // Route to get the profie --------------------------------------------
 
-router.get("/profile", authentication, async(req, res)=>{
+userRouter.get("/profile", authentication, async(req, res)=>{
   const user = await User.findById(req.userId);
   res.status(200).send(user);
 })
 
 
-// Dummy Route ------------------------------------------
-
-router.get("/dummy", authentication,  (req, res)=>{
-  res.send(req.userId);
-})
-
-
 // Route to get all the users -----------------------------------------
 
-router.get("/getAllUsers", async(req, res)=>{
+userRouter.get("/ ", authentication, async(req, res)=>{
   try{
     const allUsers = await User.find();
     console.log("Successfully fetched all the users!")
@@ -94,7 +30,7 @@ router.get("/getAllUsers", async(req, res)=>{
 
 // Route to get 1 user using ID ---------------------------------------
 
-router.get("/user/:id", async(req, res)=>{
+userRouter.get("/:id", authentication, async(req, res)=>{
   const id = req.params.id;
   try{
     const user = await User.findById(id);
@@ -106,7 +42,7 @@ router.get("/user/:id", async(req, res)=>{
 
 // Edit an User Detail -------------------------------------
 
-router.patch("/user/:id", async(req, res)=>{
+userRouter.patch("/:id", authentication, async(req, res)=>{
   const id = req.params?.id;
   const updateDetails = req.body;
   try{
@@ -116,7 +52,7 @@ router.patch("/user/:id", async(req, res)=>{
     })
     if(!isUpdateAllowed || updateDetails.age>80)
     {
-      throw new Error("Please enter the UPDATE VALUES CORRECTLY!")
+      throw new Error("Age cannot be more than 80. Please enter the UPDATE VALUES CORRECTLY!")
     }
     const updatedUser = await User.findByIdAndUpdate(id, updateDetails, {runValidators: true});
     res.status(200).send(updateDetails);
@@ -127,7 +63,7 @@ router.patch("/user/:id", async(req, res)=>{
 
 // Delete an User ------------------------------------------------------
 
-router.delete("/user/:id", async(req, res)=>{
+userRouter.delete("/:id", authentication, async(req, res)=>{
   const id = req.params.id;
   try{
     await User.findOneAndDelete(id);
@@ -139,4 +75,4 @@ router.delete("/user/:id", async(req, res)=>{
 
 
 
-export default router;
+export default userRouter;

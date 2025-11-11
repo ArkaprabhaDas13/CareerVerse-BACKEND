@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/users.js'
 
+// Verifying JWT
+
 const authentication = (req, res, next)=>{
     try{
         const {token} = req.cookies;
